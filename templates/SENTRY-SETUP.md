@@ -1,6 +1,6 @@
 # Sentry MCP Plugin - Setup Guide
 
-Plugin ini menyediakan slash commands di Claude Code untuk berinteraksi langsung dengan Sentry error tracking.
+Plugin ini menyediakan slash commands dan natural language support di Claude Code untuk berinteraksi langsung dengan Sentry error tracking.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ cp .mcp.json.example .mcp.json
 
 Edit `.mcp.json`, ganti `YOUR_SENTRY_ACCESS_TOKEN_HERE` dengan token asli.
 
-**Jika sudah punya `.mcp.json`** (karena pakai MCP tools lain) — tambahkan config `sentry` ke dalam `mcpServers` yang sudah ada:
+**Jika sudah punya `.mcp.json`** — tambahkan config `sentry` ke dalam `mcpServers`:
 
 ```json
 {
@@ -42,33 +42,16 @@ Edit `.mcp.json`, ganti `YOUR_SENTRY_ACCESS_TOKEN_HERE` dengan token asli.
 }
 ```
 
-> **Jangan replace** seluruh file jika sudah ada MCP lain — cukup tambahkan key `"sentry"` di dalam `mcpServers`.
-
-> **Windows**: Jika MCP server gagal start, coba ganti `"command": "npx"` ke `"command": "npx.cmd"` di `.mcp.json`.
+> **Windows**: Jika MCP server gagal start, ganti `"command": "npx"` ke `"command": "npx.cmd"`.
 
 ### Step 2: Cara Mendapatkan Token
 
 1. Buka https://YOUR_SENTRY_HOST
-2. Klik **Settings** > **User Auth Tokens** > **Create New Token**
-3. Pilih scope yang dibutuhkan:
-   - `project:read`
-   - `event:read`
-   - `issue:read` dan `issue:write`
-   - `org:read`
-   - `team:read`
-   - `release:admin` (opsional, untuk fitur releases)
-   - `member:read` (opsional, untuk assign issue)
-4. Copy token yang dihasilkan
+2. Settings > User Auth Tokens > Create New Token
+3. Scope: `project:read`, `event:read`, `issue:read`, `issue:write`, `org:read`, `team:read`
+4. Copy token
 
-### Step 3: Pastikan .gitignore
-
-Pastikan `.mcp.json` ada di `.gitignore` supaya token tidak ter-commit:
-
-```
-.mcp.json
-```
-
-### Step 4: Verifikasi
+### Step 3: Verifikasi
 
 Restart Claude Code, lalu jalankan:
 
@@ -76,49 +59,47 @@ Restart Claude Code, lalu jalankan:
 /project:sentry-help
 ```
 
-Jika berhasil, akan tampil daftar command dan konfigurasi project kamu.
-
-## Commands yang Tersedia
+## Commands
 
 | Command | Deskripsi |
 |---------|-----------|
-| `/project:sentry-issues [query]` | List unresolved issues |
-| `/project:sentry-detail <ID>` | Detail issue lengkap + stacktrace |
-| `/project:sentry-resolve <ID> <action>` | Resolve, ignore, atau reopen issue |
-| `/project:sentry-events [query]` | Search events (errors, spans, logs) |
-| `/project:sentry-releases [version]` | Lihat releases project |
-| `/project:sentry-docs <query>` | Cari dokumentasi Sentry SDK |
-| `/project:sentry-help` | Tampilkan daftar command |
+| `/project:sentry-issues [query]` | List issues (support natural language) |
+| `/project:sentry-detail <ID>` | Detail issue + stacktrace |
+| `/project:sentry-fix [ID]` | Full workflow: detect → fix → resolve |
+| `/project:sentry-resolve <ID> [action]` | Resolve, ignore, reopen |
+| `/project:sentry-events [query]` | Search events/logs |
+| `/project:sentry-releases [version]` | Lihat releases |
+| `/project:sentry-help` | Bantuan |
 
-## Contoh Penggunaan
+## Natural Language
+
+Selain slash commands, kamu bisa langsung bertanya:
 
 ```
-# Lihat semua unresolved issues
-/project:sentry-issues
-
-# Filter error dalam 24 jam terakhir
-/project:sentry-issues level:error firstSeen:-24h
-
-# Lihat detail issue tertentu
-/project:sentry-detail PROJECT-123
-
-# Resolve issue
-/project:sentry-resolve PROJECT-123 resolved
-
-# Search error events
-/project:sentry-events level:error
+"apa saja error 1 jam terakhir?"
+"detail issue PROJECT-123"
+"dimana letak errornya di kodinganku?"
+"tolong fix error login"
+"resolve issue PROJECT-123"
 ```
 
-## Konfigurasi
+## Workflow: Error → Fix → Resolve
 
-Config project ada di `.claude/sentry-mcp.md`. Untuk ganti project, edit file tersebut.
+```
+1. Tanya error terbaru    → list issues
+2. Detail issue            → stacktrace + file location
+3. Lokasi error di code    → buka file, tunjukkan line
+4. Fix error               → suggest & apply
+5. Resolve di Sentry       → update status
+```
+
+Gunakan `/project:sentry-fix` atau tanya langsung "tolong fix error terbaru".
 
 ## Troubleshooting
 
 | Masalah | Solusi |
 |---------|--------|
-| MCP server tidak muncul | Pastikan Node.js >= 20 (`node -v`). Restart Claude Code. |
+| MCP server tidak muncul | Pastikan Node.js >= 20. Restart Claude Code. |
 | 403 Permission Denied | Token expired atau scope kurang. Buat token baru. |
-| `npx` tidak ditemukan | Install Node.js atau jalankan `npm install -g @sentry/mcp-server`. |
-| Windows: npx error | Ganti `"command": "npx"` ke `"command": "npx.cmd"` di `.mcp.json`. |
-| Command tidak muncul | Pastikan file `.claude/commands/sentry-*.md` ada dan formatnya benar. |
+| Windows: npx error | Ganti `"command": "npx"` ke `"command": "npx.cmd"`. |
+| Command tidak muncul | Pastikan `.claude/commands/sentry-*.md` ada. |

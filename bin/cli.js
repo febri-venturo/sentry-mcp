@@ -168,7 +168,7 @@ async function main() {
     path.join(TEMPLATES_DIR, '.claude', 'commands'),
     path.join(claudeDir, 'commands')
   );
-  console.log('  [OK] .claude/commands/sentry-*.md (7 commands)');
+  console.log('  [OK] .claude/commands/sentry-*.md (8 commands)');
 
   // 3. Copy .mcp.json.example
   fs.copyFileSync(

@@ -2,20 +2,18 @@
 allowed-tools: mcp__sentry__list_issues, Read
 ---
 
-Baca file `.claude/sentry-mcp.md` untuk mendapatkan nilai Organization Slug, Project Slug, dan Region URL.
+Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Project Slug, Region URL).
 
-Kemudian panggil tool `list_issues` dengan parameter:
-- organizationSlug: (dari sentry-mcp.md)
-- projectSlugOrId: (dari sentry-mcp.md)
-- regionUrl: (dari sentry-mcp.md)
-- query: "$ARGUMENTS" (jika kosong, gunakan "is:unresolved")
-- sort: "date"
-- limit: 25
+**Parse $ARGUMENTS:**
+- Jika natural language (contoh: "5 error 1 jam terakhir"), terjemahkan:
+  - Angka → limit (default: 5)
+  - "error/warning/fatal" → level:X
+  - Waktu ("1 jam" → `lastSeen:-1h`, "24 jam" → `lastSeen:-24h`, "seminggu" → `lastSeen:-7d`)
+- Jika Sentry query format, gunakan langsung
+- Jika kosong → query: "is:unresolved", limit: 5
 
-Tampilkan hasil dalam format tabel yang jelas: Issue ID, Title, Events, Users, Last Seen.
+Panggil `list_issues` dengan organizationSlug, projectSlugOrId, regionUrl, query, sort: "date", limit.
 
-Jika tidak ada arguments, tampilkan juga contoh filter yang bisa dipakai:
-- `is:unresolved is:unassigned` - Belum resolved dan belum di-assign
-- `level:error` - Hanya error level
-- `firstSeen:-24h` - Issue baru dalam 24 jam terakhir
-- `lastSeen:-1h` - Issue yang muncul dalam 1 jam terakhir
+**Format output** — tabel ringkas: Issue ID, Title, Level, Events, Last Seen.
+
+Setelah tampilkan, tawarkan: "Mau lihat detail atau fix salah satu issue?"

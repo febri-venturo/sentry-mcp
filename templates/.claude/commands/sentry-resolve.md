@@ -1,31 +1,19 @@
 ---
-allowed-tools: mcp__sentry__update_issue, mcp__sentry__get_issue_details, Read
+allowed-tools: mcp__sentry__update_issue, Read
 ---
 
-Baca file `.claude/sentry-mcp.md` untuk mendapatkan nilai Organization Slug dan Region URL.
+Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Region URL).
 
-Argument yang diberikan user: $ARGUMENTS
+**Parse $ARGUMENTS:**
+- Arg 1: Issue ID (PROJECT-123)
+- Arg 2: Action — mapping:
+  - "resolved/resolve/selesai/fix/done" → status: "resolved"
+  - "ignored/ignore/abaikan/skip" → status: "ignored"
+  - "unresolved/reopen/buka" → status: "unresolved"
+- Jika natural language ("resolve issue PROJECT-123"), parse ID dan action dari kalimat
 
-Parse arguments:
-- Argument pertama: Issue ID (contoh: PROJECT-123)
-- Argument kedua: Action - salah satu dari: resolved, ignored, unresolved
+Jika hanya Issue ID tanpa action, default ke "resolved" dan konfirmasi ke user.
 
-Mapping action:
-- "resolved" atau "resolve" -> status: "resolved"
-- "ignored" atau "ignore" -> status: "ignored"
-- "unresolved" atau "reopen" -> status: "unresolved"
+Panggil `update_issue` dengan organizationSlug, regionUrl, issueId, status.
 
-Jika hanya Issue ID tanpa action, panggil `get_issue_details` dulu untuk menampilkan status saat ini, lalu tanya user mau action apa.
-
-Panggil `update_issue` dengan:
-- organizationSlug: (dari config)
-- regionUrl: (dari config)
-- issueId: (argument pertama)
-- status: (dari mapping action)
-
-Konfirmasi hasilnya ke user.
-
-Jika tidak ada argument, tampilkan cara pakai:
-- `/project:sentry-resolve PROJECT-123 resolved` - Resolve issue
-- `/project:sentry-resolve PROJECT-123 ignored` - Ignore issue
-- `/project:sentry-resolve PROJECT-123 unresolved` - Reopen issue
+Konfirmasi singkat: "✅ Issue PROJECT-123 resolved."

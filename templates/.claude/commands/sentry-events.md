@@ -2,30 +2,15 @@
 allowed-tools: mcp__sentry__list_events, Read
 ---
 
-Baca file `.claude/sentry-mcp.md` untuk mendapatkan nilai Organization Slug, Project Slug, dan Region URL.
+Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Project Slug, Region URL).
 
-Argument yang diberikan user: $ARGUMENTS
+**Parse $ARGUMENTS:**
+- Natural language: terjemahkan ke parameter (lihat mapping waktu dan level di sentry-mcp.md)
+  - Contoh: "error logs 1 jam terakhir" → dataset: "errors", query: "level:error", statsPeriod: "1h"
+- `--dataset=spans|logs|errors` → dataset (default: "errors")
+- `--period=1h|24h|7d` → statsPeriod (default: "24h")
+- Sisa text → query
 
-Parse arguments:
-- Jika ada `--dataset=spans` atau `--dataset=logs`, gunakan dataset tersebut dan hapus dari query
-- Jika ada `--period=24h` (atau nilai lain), gunakan sebagai statsPeriod dan hapus dari query
-- Default dataset: "errors"
-- Default period: "14d"
-- Sisa text menjadi query string
+Panggil `list_events` dengan organizationSlug, projectSlug, regionUrl, dataset, query, statsPeriod, limit: 10.
 
-Panggil `list_events` dengan:
-- organizationSlug: (dari config)
-- projectSlug: (dari config)
-- regionUrl: (dari config)
-- dataset: (parsed atau default "errors")
-- query: (sisa arguments, atau kosong untuk semua)
-- statsPeriod: (parsed atau default "14d")
-- limit: 20
-
-Tampilkan hasil dalam format yang jelas.
-
-Jika tidak ada argument, tampilkan contoh penggunaan:
-- `/project:sentry-events level:error` - Error events terbaru
-- `/project:sentry-events --dataset=spans span.op:http.client` - HTTP spans
-- `/project:sentry-events --period=24h message:"timeout"` - Timeout dalam 24 jam
-- `/project:sentry-events --dataset=logs log.level:error` - Error logs
+**Format output** — tabel ringkas. Jika kosong, tampilkan 3 contoh singkat.

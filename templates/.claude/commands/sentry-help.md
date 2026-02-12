@@ -2,23 +2,25 @@
 allowed-tools: Read
 ---
 
-Baca file `.claude/sentry-mcp.md` untuk mendapatkan konfigurasi Sentry project saat ini (Organization Slug, Project Slug, Region URL).
+Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Project Slug, Region URL).
 
-Kemudian tampilkan informasi berikut:
+Tampilkan ringkas:
 
 ## Sentry MCP Commands
 
 | Command | Deskripsi |
 |---------|-----------|
-| `/project:sentry-issues [query]` | List unresolved issues. Contoh: `/project:sentry-issues level:error` |
-| `/project:sentry-detail <ID>` | Detail issue lengkap dengan stacktrace |
-| `/project:sentry-resolve <ID> <action>` | Resolve, ignore, atau reopen issue |
-| `/project:sentry-events [query]` | Search events (errors, spans, logs) |
-| `/project:sentry-releases [version]` | Lihat releases project |
-| `/project:sentry-docs <query>` | Cari dokumentasi Sentry SDK |
-| `/project:sentry-help` | Tampilkan bantuan ini |
+| `/project:sentry-issues [query]` | List issues (support natural language) |
+| `/project:sentry-detail <ID>` | Detail issue + stacktrace |
+| `/project:sentry-fix [ID]` | Full workflow: detect → fix → resolve |
+| `/project:sentry-resolve <ID> [action]` | Resolve, ignore, reopen |
+| `/project:sentry-events [query]` | Search events/logs |
+| `/project:sentry-releases [version]` | Lihat releases |
+| `/project:sentry-help` | Bantuan ini |
 
-## Konfigurasi Saat Ini
+**Tips**: Kamu juga bisa langsung bertanya natural language, contoh:
+- "apa saja error 1 jam terakhir?"
+- "tolong fix error login"
+- "detail issue PROJECT-123"
 
-Tampilkan nilai Organization Slug, Project Slug, dan Region URL yang dibaca dari `.claude/sentry-mcp.md`.
-Tampilkan juga link ke Sentry dashboard project ini.
+Config: Organization=**ORG_SLUG**, Project=**PROJECT_SLUG**, Host=**REGION_URL** (dari `.claude/sentry-mcp.md`).

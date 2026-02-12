@@ -1,28 +1,28 @@
 # Sentry MCP Plugin for Claude Code
 
-Plugin ini menambahkan slash commands di Claude Code untuk berinteraksi langsung dengan Sentry error tracking (self-hosted maupun cloud).
+Plugin ini menambahkan slash commands dan natural language support di Claude Code untuk berinteraksi langsung dengan Sentry error tracking (self-hosted maupun cloud).
+
+## Fitur Utama
+
+- 🗣️ **Natural Language** — tanya langsung: "apa saja error 1 jam terakhir?"
+- 🔧 **Full Fix Workflow** — detect error → analyze stacktrace → fix code → resolve issue
+- 💰 **Token Efficient** — output ringkas, default limit rendah, skip verbose data
+- 🌐 **Framework Agnostic** — PHP, Golang, Node.js, Python, dll.
+- 🏠 **Self-Hosted Support** — kompatibel dengan Sentry self-hosted
 
 ## Install
-
-Jalankan di root project kamu:
 
 ```bash
 npx github:febri-venturo/sentry-mcp init
 ```
 
-Installer akan menanyakan:
-1. **Sentry Host** — domain Sentry kamu (contoh: `sentry.company.com`)
-2. **Organization Slug** — slug organisasi di Sentry
-3. **Project Slug** — slug project di Sentry
-
-Kemudian otomatis:
+Installer akan menanyakan Sentry Host, Organization Slug, dan Project Slug, kemudian otomatis:
 - Copy slash commands ke `.claude/commands/`
 - Copy config ke `.claude/sentry-mcp.md`
-- Copy `.mcp.json.example` sebagai template MCP config
-- Copy `SENTRY-SETUP.md` sebagai panduan
+- Copy `.mcp.json.example` sebagai template
 - Menambahkan `.mcp.json` ke `.gitignore`
 
-### Alternatif Install (jika npx gagal)
+### Alternatif Install
 
 ```bash
 git clone https://github.com/febri-venturo/sentry-mcp.git /tmp/sentry-mcp
@@ -52,36 +52,60 @@ node /tmp/sentry-mcp/bin/cli.js init
 
 | Command | Deskripsi |
 |---------|-----------|
-| `/project:sentry-issues [query]` | List unresolved issues |
+| `/project:sentry-issues [query]` | List issues (support natural language) |
 | `/project:sentry-detail <ID>` | Detail issue + stacktrace |
-| `/project:sentry-resolve <ID> <action>` | Resolve, ignore, atau reopen issue |
-| `/project:sentry-events [query]` | Search events (errors, spans, logs) |
-| `/project:sentry-releases [version]` | Lihat releases project |
+| `/project:sentry-fix [ID]` | **Full workflow**: detect → fix → resolve |
+| `/project:sentry-resolve <ID> [action]` | Resolve, ignore, reopen |
+| `/project:sentry-events [query]` | Search events/logs |
+| `/project:sentry-releases [version]` | Lihat releases |
 | `/project:sentry-docs` | Info dokumentasi Sentry SDK |
-| `/project:sentry-help` | Tampilkan daftar command |
+| `/project:sentry-help` | Daftar command |
 
-## Contoh
+## Natural Language
 
-```bash
-# Lihat semua unresolved issues
-/project:sentry-issues
+Selain slash commands, kamu bisa langsung bertanya menggunakan bahasa natural:
 
-# Filter error 24 jam terakhir
-/project:sentry-issues level:error firstSeen:-24h
-
-# Detail issue
-/project:sentry-detail PROJECT-123
-
-# Resolve issue
-/project:sentry-resolve PROJECT-123 resolved
-
-# Search error events
-/project:sentry-events level:error
 ```
+# Cek error
+"apa saja error di sentry 1 jam terakhir?"
+"tampilkan 3 error terbaru"
+"ada warning apa aja hari ini?"
+
+# Detail & fix
+"lihat detail issue PROJECT-123"
+"dimana letak error nya di kodinganku?"
+"tolong fix error nya"
+
+# Resolve
+"resolve issue PROJECT-123"
+"abaikan issue ini"
+```
+
+## Workflow: Error → Fix → Resolve
+
+Flow paling umum yang didukung plugin ini:
+
+```
+1. "apa error terbaru?"          → list issues dari Sentry
+2. "detail issue PROJECT-123"    → stacktrace + error location
+3. "dimana errornya di kodeku?"  → buka file, tunjukkan line error
+4. "tolong fix"                  → suggest & apply fix
+5. "resolve issue nya"           → update status di Sentry
+```
+
+Atau cukup jalankan `/project:sentry-fix` untuk guided workflow.
+
+## Token Efficiency
+
+Plugin ini dioptimasi untuk hemat token:
+- Default limit: **5 issues** (bukan 25)
+- Output ringkas: hanya field penting
+- Stacktrace: hanya application code frames
+- Tidak menampilkan contoh usage kecuali diminta
 
 ## Konfigurasi
 
-Setelah install, config project ada di `.claude/sentry-mcp.md`:
+Config project ada di `.claude/sentry-mcp.md`:
 
 ```markdown
 - **Organization Slug**: your-org
@@ -99,8 +123,6 @@ Plugin ini bisa dipakai di project dengan framework apapun:
 - JavaScript/Node (Express, Next.js)
 - Python (Django, Flask)
 - Dan lain-lain
-
-Yang berubah per project hanya **Sentry Host**, **Organization Slug**, **Project Slug**, dan **token**.
 
 ## Catatan
 
