@@ -10,11 +10,26 @@ Plugin ini menambahkan slash commands dan natural language support di Claude Cod
 - 🌐 **Framework Agnostic** — PHP, Golang, Node.js, Python, dll.
 - 🏠 **Self-Hosted Support** — kompatibel dengan Sentry self-hosted
 
+## Prerequisites
+
+- **Node.js >= 20** — cek: `node -v`
+- **Claude Code** — VSCode extension atau CLI ([download](https://claude.ai/download))
+- **Sentry instance** — self-hosted atau cloud (sentry.io)
+- **Sentry Access Token** — dengan scope: `project:read`, `event:read`, `issue:read`, `issue:write`, `org:read`, `team:read`
+
 ## Install
 
+**macOS / Linux:**
 ```bash
 npx github:febri-venturo/sentry-mcp init
 ```
+
+**Windows (PowerShell / CMD):**
+```bash
+npx.cmd github:febri-venturo/sentry-mcp init
+```
+
+> **Note**: Di Windows, beberapa sistem membutuhkan `npx.cmd` sebagai pengganti `npx`. Jika `npx` gagal, gunakan `npx.cmd`.
 
 Installer akan menanyakan Sentry Host, Organization Slug, dan Project Slug, kemudian otomatis:
 - Copy slash commands ke `.claude/commands/`
@@ -22,7 +37,7 @@ Installer akan menanyakan Sentry Host, Organization Slug, dan Project Slug, kemu
 - Copy `.mcp.json.example` sebagai template
 - Menambahkan `.mcp.json` ke `.gitignore`
 
-### Alternatif Install
+### Alternatif Install (jika npx gagal)
 
 ```bash
 git clone https://github.com/febri-venturo/sentry-mcp.git /tmp/sentry-mcp
