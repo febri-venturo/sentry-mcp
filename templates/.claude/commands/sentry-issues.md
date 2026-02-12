@@ -12,7 +12,11 @@ Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Project Slug, Regi
 - Jika Sentry query format, gunakan langsung
 - Jika kosong → query: "is:unresolved", limit: 5
 
-Panggil `list_issues` dengan organizationSlug, projectSlugOrId, regionUrl, query, sort: "date", limit.
+Panggil `list_issues` — **WAJIB** sertakan parameter dari config:
+- `organizationSlug`: dari config
+- `projectSlugOrId`: dari config (**WAJIB** — tanpa ini akan return issues dari SEMUA project!)
+- `regionUrl`: dari config
+- `query`, `sort`: "date", `limit`
 
 **Format output** — tabel ringkas: Issue ID, Title, Level, Events, Last Seen.
 

@@ -11,6 +11,10 @@ Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Project Slug, Regi
 - `--period=1h|24h|7d` → statsPeriod (default: "24h")
 - Sisa text → query
 
-Panggil `list_events` dengan organizationSlug, projectSlug, regionUrl, dataset, query, statsPeriod, limit: 10.
+Panggil `list_events` — **WAJIB** sertakan parameter dari config:
+- `organizationSlug`: dari config
+- `projectSlug`: dari config (**WAJIB** — tanpa ini akan return events dari SEMUA project!)
+- `regionUrl`: dari config
+- `dataset`, `query`, `statsPeriod`, `limit`: 10
 
 **Format output** — tabel ringkas. Jika kosong, tampilkan 3 contoh singkat.
