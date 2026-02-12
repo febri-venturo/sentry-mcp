@@ -1,0 +1,17 @@
+{
+  "name": "sentry-mcp",
+  "version": "1.0.0",
+  "description": "Sentry MCP Plugin for Claude Code",
+  "bin": {
+    "sentry-mcp": "./bin/cli.js"
+  },
+  "keywords": [
+    "sentry",
+    "mcp",
+    "claude-code",
+    "febri",
+    "error-tracking"
+  ],
+  "author": "Febri",
+  "license": "MIT"
+}
