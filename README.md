@@ -29,12 +29,16 @@ npx github:febri-venturo/sentry-mcp init
 npx.cmd github:febri-venturo/sentry-mcp init
 ```
 
-> **Note**: Di Windows, beberapa sistem membutuhkan `npx.cmd` sebagai pengganti `npx`. Jika `npx` gagal, gunakan `npx.cmd`.
+**Non-interactive (semua flags):**
+```bash
+npx github:febri-venturo/sentry-mcp init --host=sentry.company.com --org=my-org --project=my-project --token=sntrys_xxx
+```
 
-Installer akan menanyakan Sentry Host, Organization Slug, dan Project Slug, kemudian otomatis:
+Installer akan menanyakan Sentry Host, Organization Slug, Project Slug, dan Access Token, kemudian otomatis:
 - Copy slash commands ke `.claude/commands/`
 - Copy config ke `.claude/sentry-mcp.md`
-- Copy `.mcp.json.example` sebagai template
+- **Generate `.mcp.json` dengan konfigurasi yang benar** (auto-detect OS)
+- Copy `.mcp.json.example` sebagai reference template
 - Menambahkan `.mcp.json` ke `.gitignore`
 
 ### Alternatif Install (jika npx gagal)
@@ -47,21 +51,12 @@ node /tmp/sentry-mcp/bin/cli.js init
 
 ## Setelah Install
 
-1. **Buat `.mcp.json`** dari template:
-   ```bash
-   cp .mcp.json.example .mcp.json
-   ```
+`.mcp.json` sudah otomatis dikonfigurasi oleh installer (termasuk token dan OS detection).
 
-2. **Isi token** — edit `.mcp.json`, ganti `YOUR_SENTRY_ACCESS_TOKEN_HERE` dengan token dari Sentry:
-   - Settings > User Auth Tokens > Create New Token
-   - Scope: `project:read`, `event:read`, `issue:read`, `issue:write`, `org:read`, `team:read`
+1. **Restart Claude Code**
+2. **Test**: `/project:sentry-help`
 
-3. **Restart Claude Code**, lalu test:
-   ```
-   /project:sentry-help
-   ```
-
-> **Windows**: Jika MCP server gagal start, ganti `"command": "npx"` ke `"command": "npx.cmd"` di `.mcp.json`.
+> **Note**: Installer otomatis mendeteksi OS. Di Windows menggunakan `cmd /c npx`, di macOS/Linux menggunakan `npx` langsung. Jika MCP tetap gagal connect, cek token dan host di `.mcp.json`.
 
 ## Commands
 

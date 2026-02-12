@@ -68,6 +68,61 @@ function addToGitignore(entry) {
   return true;
 }
 
+function getMcpCommand() {
+  const isWindows = process.platform === 'win32';
+  if (isWindows) {
+    return {
+      command: 'cmd',
+      args: ['/c', 'npx', '@sentry/mcp-server'],
+    };
+  }
+  return {
+    command: 'npx',
+    args: ['@sentry/mcp-server'],
+  };
+}
+
+function generateMcpConfig(sentryHost, accessToken) {
+  const { command, args } = getMcpCommand();
+  return {
+    mcpServers: {
+      sentry: {
+        type: 'stdio',
+        command: command,
+        args: args,
+        env: {
+          SENTRY_ACCESS_TOKEN: accessToken,
+          SENTRY_HOST: sentryHost,
+          MCP_DISABLE_SKILLS: 'seer',
+        },
+      },
+    },
+  };
+}
+
+function writeMcpJson(projectDir, sentryHost, accessToken) {
+  const mcpJsonPath = path.join(projectDir, '.mcp.json');
+  const newConfig = generateMcpConfig(sentryHost, accessToken);
+
+  if (fs.existsSync(mcpJsonPath)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
+      if (existing.mcpServers) {
+        existing.mcpServers.sentry = newConfig.mcpServers.sentry;
+      } else {
+        existing.mcpServers = newConfig.mcpServers;
+      }
+      fs.writeFileSync(mcpJsonPath, JSON.stringify(existing, null, 2) + '\n', 'utf8');
+      return 'merged';
+    } catch (e) {
+      // Invalid JSON — overwrite
+    }
+  }
+
+  fs.writeFileSync(mcpJsonPath, JSON.stringify(newConfig, null, 2) + '\n', 'utf8');
+  return 'created';
+}
+
 function parseArgs(args) {
   const parsed = {};
   for (const arg of args) {
@@ -94,6 +149,8 @@ async function main() {
     console.log('    --host=<sentry-host>       Sentry host (contoh: sentry.company.com)');
     console.log('    --org=<org-slug>           Organization slug');
     console.log('    --project=<project-slug>   Project slug');
+    console.log('    --token=<access-token>     Sentry access token');
+    console.log('    --force                    Overwrite tanpa konfirmasi');
     console.log('');
     rl.close();
     return;
@@ -149,6 +206,21 @@ async function main() {
     return;
   }
 
+  // Get Sentry access token (from flag or prompt)
+  if (!flags.token) {
+    console.log('');
+    console.log('  Token bisa dibuat di:');
+    console.log('  https://' + sentryHost + '/settings/account/api/auth-tokens/');
+    console.log('  Scope: project:read, event:read, issue:read, issue:write, org:read, team:read');
+    console.log('');
+  }
+  const accessToken = flags.token || await ask('  Sentry Access Token: ');
+  if (!accessToken) {
+    console.log('  Error: Sentry Access Token wajib diisi.');
+    rl.close();
+    return;
+  }
+
   console.log('');
   console.log('  Installing...');
 
@@ -170,21 +242,29 @@ async function main() {
   );
   console.log('  [OK] .claude/commands/sentry-*.md (8 commands)');
 
-  // 3. Copy .mcp.json.example
+  // 3. Generate .mcp.json directly (auto-detect OS + env vars)
+  const mcpResult = writeMcpJson(PROJECT_DIR, sentryHost, accessToken);
+  if (mcpResult === 'merged') {
+    console.log('  [OK] .mcp.json (sentry config ditambahkan ke existing file)');
+  } else {
+    console.log('  [OK] .mcp.json (auto-generated)');
+  }
+
+  // 4. Copy .mcp.json.example (reference template)
   fs.copyFileSync(
     path.join(TEMPLATES_DIR, '.mcp.json.example'),
     path.join(PROJECT_DIR, '.mcp.json.example')
   );
-  console.log('  [OK] .mcp.json.example');
+  console.log('  [OK] .mcp.json.example (reference template)');
 
-  // 4. Copy SENTRY-SETUP.md
+  // 5. Copy SENTRY-SETUP.md
   fs.copyFileSync(
     path.join(TEMPLATES_DIR, 'SENTRY-SETUP.md'),
     path.join(PROJECT_DIR, 'SENTRY-SETUP.md')
   );
   console.log('  [OK] SENTRY-SETUP.md');
 
-  // 5. Replace all placeholders in copied files
+  // 6. Replace all placeholders in copied files
   const replacements = {
     'YOUR_SENTRY_HOST': sentryHost,
     'YOUR_ORG_SLUG': orgSlug,
@@ -193,7 +273,7 @@ async function main() {
 
   updateAllFiles(claudeDir, replacements);
 
-  // Update single files
+  // Update single files (.mcp.json.example and SENTRY-SETUP.md)
   const filesToUpdate = [
     path.join(PROJECT_DIR, '.mcp.json.example'),
     path.join(PROJECT_DIR, 'SENTRY-SETUP.md'),
@@ -206,11 +286,14 @@ async function main() {
     fs.writeFileSync(filePath, content, 'utf8');
   }
 
+  const isWindows = process.platform === 'win32';
   console.log('  [OK] Sentry Host: ' + sentryHost);
   console.log('  [OK] Organization: ' + orgSlug);
   console.log('  [OK] Project Slug: ' + projectSlug);
+  console.log('  [OK] Access Token: ' + accessToken.slice(0, 8) + '...' + accessToken.slice(-4));
+  console.log('  [OK] Platform: ' + (isWindows ? 'Windows (cmd /c npx)' : process.platform + ' (npx)'));
 
-  // 6. Add .mcp.json to .gitignore
+  // 7. Add .mcp.json to .gitignore
   if (addToGitignore('.mcp.json')) {
     console.log('  [OK] .mcp.json ditambahkan ke .gitignore');
   } else {
@@ -222,17 +305,12 @@ async function main() {
   console.log('  Install selesai!');
   console.log('  ================================');
   console.log('');
+  console.log('  .mcp.json sudah dikonfigurasi otomatis.');
+  console.log('');
   console.log('  Langkah selanjutnya:');
   console.log('');
-  console.log('  1. Buat .mcp.json dari template:');
-  console.log('     cp .mcp.json.example .mcp.json');
-  console.log('');
-  console.log('  2. Edit .mcp.json, ganti YOUR_SENTRY_ACCESS_TOKEN_HERE');
-  console.log('     dengan token dari https://' + sentryHost);
-  console.log('     (Settings > User Auth Tokens > Create New Token)');
-  console.log('');
-  console.log('  3. Restart Claude Code, lalu test:');
-  console.log('     /project:sentry-help');
+  console.log('  1. Restart Claude Code');
+  console.log('  2. Test: /project:sentry-help');
   console.log('');
   console.log('  Dokumentasi lengkap: SENTRY-SETUP.md');
   console.log('');

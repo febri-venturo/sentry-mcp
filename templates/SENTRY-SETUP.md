@@ -12,29 +12,23 @@ Plugin ini menyediakan slash commands dan natural language support di Claude Cod
 
 ### Step 1: Konfigurasi .mcp.json
 
-**Jika belum punya `.mcp.json`** — copy template:
+**Jika menggunakan installer** (`npx github:febri-venturo/sentry-mcp init`):
 
-```bash
-cp .mcp.json.example .mcp.json
-```
+`.mcp.json` sudah otomatis dibuat oleh installer dengan konfigurasi yang benar.
+Tidak perlu manual copy atau edit — token, host, dan OS sudah dikonfigurasi otomatis.
 
-Edit `.mcp.json`, ganti `YOUR_SENTRY_ACCESS_TOKEN_HERE` dengan token asli.
-
-**Jika sudah punya `.mcp.json`** — tambahkan config `sentry` ke dalam `mcpServers`:
+**Jika setup manual** — buat `.mcp.json` dengan format berikut:
 
 ```json
 {
   "mcpServers": {
-    "existing-mcp-tool": { "..." },
     "sentry": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "@sentry/mcp-server",
-        "--access-token=YOUR_SENTRY_ACCESS_TOKEN_HERE",
-        "--host=YOUR_SENTRY_HOST"
-      ],
+      "args": ["@sentry/mcp-server"],
       "env": {
+        "SENTRY_ACCESS_TOKEN": "your-token-here",
+        "SENTRY_HOST": "YOUR_SENTRY_HOST",
         "MCP_DISABLE_SKILLS": "seer"
       }
     }
@@ -42,14 +36,20 @@ Edit `.mcp.json`, ganti `YOUR_SENTRY_ACCESS_TOKEN_HERE` dengan token asli.
 }
 ```
 
-> **Windows**: Jika MCP server gagal start, ganti `"command": "npx"` ke `"command": "npx.cmd"`.
+> **Windows**: Installer otomatis mendeteksi OS. Jika setup manual di Windows, gunakan:
+> ```json
+> "command": "cmd",
+> "args": ["/c", "npx", "@sentry/mcp-server"]
+> ```
+
+**Jika sudah punya `.mcp.json`** — installer akan otomatis merge config `sentry` ke dalam `mcpServers` yang sudah ada.
 
 ### Step 2: Cara Mendapatkan Token
 
 1. Buka https://YOUR_SENTRY_HOST
 2. Settings > User Auth Tokens > Create New Token
 3. Scope: `project:read`, `event:read`, `issue:read`, `issue:write`, `org:read`, `team:read`
-4. Copy token
+4. Copy token (akan diminta saat install)
 
 ### Step 3: Verifikasi
 
@@ -100,6 +100,7 @@ Gunakan `/project:sentry-fix` atau tanya langsung "tolong fix error terbaru".
 | Masalah | Solusi |
 |---------|--------|
 | MCP server tidak muncul | Pastikan Node.js >= 20. Restart Claude Code. |
+| MCP server not connected | Cek token dan host di `.mcp.json`. Pastikan env var `SENTRY_ACCESS_TOKEN` benar. |
 | 403 Permission Denied | Token expired atau scope kurang. Buat token baru. |
-| Windows: npx error | Ganti `"command": "npx"` ke `"command": "npx.cmd"`. |
+| Windows: npx error | Installer sudah otomatis handle. Jika manual, gunakan `"command": "cmd"` dengan `"args": ["/c", "npx", ...]`. |
 | Command tidak muncul | Pastikan `.claude/commands/sentry-*.md` ada. |

@@ -241,15 +241,17 @@ npx github:febri-venturo/sentry-mcp init
 #    - Sentry Host (contoh: sentry.company.com)
 #    - Organization Slug
 #    - Project Slug
+#    - Sentry Access Token
 
-# 3. Buat .mcp.json dari template
-cp .mcp.json.example .mcp.json
-
-# 4. Edit .mcp.json, isi token Sentry
-#    Ganti YOUR_SENTRY_ACCESS_TOKEN_HERE
-
-# 5. Restart Claude Code, lalu test
+# 3. Selesai! .mcp.json otomatis dibuat.
+#    Restart Claude Code, lalu test:
 /project:sentry-help
+```
+
+Atau non-interactive dengan semua flags:
+
+```bash
+npx github:febri-venturo/sentry-mcp init --host=sentry.company.com --org=my-org --project=my-project --token=sntrys_xxx
 ```
 
 ### Cara Mendapatkan Token Sentry
@@ -272,7 +274,8 @@ Setelah install, file berikut akan ter-copy ke project:
 |------|--------|
 | `.claude/sentry-mcp.md` | Config + NL instructions |
 | `.claude/commands/sentry-*.md` | 8 slash commands |
-| `.mcp.json.example` | Template MCP config |
+| `.mcp.json` | MCP config (auto-generated dengan token dan OS detection) |
+| `.mcp.json.example` | Reference template (aman untuk di-commit) |
 | `SENTRY-SETUP.md` | Panduan setup |
 
 ---
@@ -487,7 +490,7 @@ Tidak ada package npm yang perlu di-install. Plugin hanya menggunakan modul bawa
 ```bash
 npx github:febri-venturo/sentry-mcp init
 ```
-Satu perintah, semua file ter-setup. Tidak perlu manual copy-paste.
+Satu perintah, semua file ter-setup termasuk `.mcp.json` — tidak perlu manual copy atau edit.
 
 ### 3. Framework Agnostic
 Bisa dipakai di project apapun:
@@ -509,9 +512,9 @@ Banyak tools hanya mendukung Sentry Cloud. Plugin ini **eksplisit mendukung self
 Developer bisa berinteraksi menggunakan bahasa sehari-hari tanpa perlu menghafal format query.
 
 ### 6. Secure by Default
-- Token disimpan di `.mcp.json` yang otomatis di-gitignore
-- Template `.mcp.json.example` aman untuk di-commit
-- Tidak ada hardcoded credentials
+- Token disimpan di `.mcp.json` yang **otomatis** di-gitignore oleh installer
+- Template `.mcp.json.example` aman untuk di-commit (tidak berisi token asli)
+- Token di-input selama install, tidak perlu manual edit file
 
 ### 7. Token Efficient
 Output dioptimasi untuk hemat token — ~85% lebih hemat dibanding tanpa optimasi.
@@ -565,7 +568,7 @@ Satu-satunya plugin yang mendukung workflow lengkap dari detect error sampai fix
 | Dart | Flutter | ✅ |
 
 ### Operating System
-- ✅ Windows (dengan workaround `npx.cmd`)
+- ✅ Windows (auto-detected: menggunakan `cmd /c npx`)
 - ✅ macOS
 - ✅ Linux
 
@@ -580,7 +583,7 @@ Satu-satunya plugin yang mendukung workflow lengkap dari detect error sampai fix
 | 403 Permission Denied | Token expired | Buat token baru di Sentry |
 | 403 Permission Denied | Scope kurang | Pastikan semua scope terpenuhi |
 | Command tidak muncul | File command belum ter-copy | Jalankan install ulang |
-| Windows: npx error | PowerShell issue | Ganti `"npx"` → `"npx.cmd"` di `.mcp.json` |
+| Windows: npx error | PowerShell issue | Installer otomatis handle. Jika manual, gunakan `"command": "cmd"`, `"args": ["/c", "npx", ...]` |
 | Seer error | Self-hosted tidak support | Pastikan `MCP_DISABLE_SKILLS: seer` ada |
 | Issues kosong | Project slug salah | Cek `.claude/sentry-mcp.md`, pastikan slug benar |
 

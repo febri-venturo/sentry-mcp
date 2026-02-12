@@ -3,12 +3,10 @@
     "sentry": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "@sentry/mcp-server",
-        "--access-token=YOUR_SENTRY_ACCESS_TOKEN_HERE",
-        "--host=YOUR_SENTRY_HOST"
-      ],
+      "args": ["@sentry/mcp-server"],
       "env": {
+        "SENTRY_ACCESS_TOKEN": "YOUR_SENTRY_ACCESS_TOKEN_HERE",
+        "SENTRY_HOST": "YOUR_SENTRY_HOST",
         "MCP_DISABLE_SKILLS": "seer"
       }
     }
