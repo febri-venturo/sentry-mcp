@@ -255,7 +255,7 @@ async function runUninstall(flags) {
   }
 
   // 6. Clean up .gitignore entries
-  const gitignoreEntries = ['.mcp.json', '.claude/commands/', '.claude/sentry-mcp.md'];
+  const gitignoreEntries = ['.mcp.json', '.mcp.json.example', '.claude/commands/', '.claude/sentry-mcp.md'];
   for (const entry of gitignoreEntries) {
     if (removeFromGitignore(entry)) {
       console.log('  [OK] Removed ' + entry + ' from .gitignore');
@@ -452,7 +452,7 @@ async function main() {
   console.log('  [OK] Platform: ' + (isWindows ? 'Windows (cmd /c npx)' : process.platform + ' (npx)'));
 
   // 7. Add .mcp.json, .claude/commands/, .claude/sentry-mcp.md to .gitignore
-  const gitignoreEntries = ['.mcp.json', '.claude/commands/', '.claude/sentry-mcp.md'];
+  const gitignoreEntries = ['.mcp.json', '.mcp.json.example', '.claude/commands/', '.claude/sentry-mcp.md'];
   for (const entry of gitignoreEntries) {
     if (addToGitignore(entry)) {
       console.log('  [OK] ' + entry + ' ditambahkan ke .gitignore');
