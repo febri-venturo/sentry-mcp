@@ -2,10 +2,6 @@
 allowed-tools: mcp__sentry__list_issues, mcp__sentry__get_issue_details, mcp__sentry__update_issue, Read, Edit, MultiEdit, Write
 ---
 
-Read `.claude/sentry-mcp.md` for config. **NEVER use `search_issues`** — always use `list_issues`.
-
-All MCP calls MUST include `organizationSlug`, `projectSlugOrId`, `regionUrl` from config.
-
 **Parse $ARGUMENTS:**
 - Issue ID (PROJECT-123) → skip to step 2
 - Natural language → start from step 1

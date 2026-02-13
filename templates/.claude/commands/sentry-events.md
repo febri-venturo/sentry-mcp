@@ -1,11 +1,9 @@
 ---
-allowed-tools: mcp__sentry__list_events, Read
+allowed-tools: mcp__sentry__list_events
 ---
 
-Read `.claude/sentry-mcp.md` for config.
-
 **Parse $ARGUMENTS:**
-- Natural language → translate to params (time/level mapping from sentry-mcp.md)
+- "error/warning/fatal" → query filter, Time → statsPeriod
 - `--dataset=spans|logs|errors` → dataset (default: `errors`)
 - `--period=1h|24h|7d` → statsPeriod (default: `24h`)
 - Remaining text → query

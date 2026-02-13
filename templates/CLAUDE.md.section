@@ -1,0 +1,12 @@
+<!-- SENTRY_MCP_START -->
+## Sentry MCP
+
+**EVERY Sentry MCP tool call MUST include these parameters:**
+- `organizationSlug`: "YOUR_ORG_SLUG"
+- `projectSlugOrId`: "YOUR_PROJECT_SLUG"
+- `regionUrl`: "https://YOUR_SENTRY_HOST"
+
+**NEVER use `search_issues`** — always use `list_issues`.
+
+Tool mapping: `list_issues` (list/recent), `get_issue_details` (detail), `list_events` (events/logs), `update_issue` (resolve/ignore), `find_releases` (releases). For query syntax and workflows, read `.claude/sentry-mcp.md`.
+<!-- SENTRY_MCP_END -->

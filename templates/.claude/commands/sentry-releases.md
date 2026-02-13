@@ -1,10 +1,8 @@
 ---
-allowed-tools: mcp__sentry__find_releases, Read
+allowed-tools: mcp__sentry__find_releases
 ---
 
-Read `.claude/sentry-mcp.md` for config.
-
-Call `find_releases` with `organizationSlug`, `projectSlug`, `regionUrl` from config + `query`: "$ARGUMENTS" (if provided).
+Call `find_releases` with `organizationSlug`, `projectSlug`, `regionUrl` + `query`: "$ARGUMENTS" (if provided).
 
 Show releases with version, date, and deployment info.
 

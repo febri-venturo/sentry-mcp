@@ -2,8 +2,6 @@
 allowed-tools: mcp__sentry__get_issue_details, Read
 ---
 
-Read `.claude/sentry-mcp.md` for config.
-
 **Parse $ARGUMENTS:**
 - URL → use as `issueUrl`
 - Issue ID (PROJECT-123) → use as `issueId` + `organizationSlug`

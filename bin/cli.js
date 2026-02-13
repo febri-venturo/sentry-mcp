@@ -52,6 +52,64 @@ function updateAllFiles(dir, replacements) {
   }
 }
 
+function injectClaudeMd(projectDir) {
+  const claudeDir = path.join(projectDir, '.claude');
+  if (!fs.existsSync(claudeDir)) {
+    fs.mkdirSync(claudeDir, { recursive: true });
+  }
+  const claudeMdPath = path.join(claudeDir, 'CLAUDE.md');
+  const sectionPath = path.join(TEMPLATES_DIR, 'CLAUDE.md.section');
+  const section = fs.readFileSync(sectionPath, 'utf8').trim();
+
+  if (fs.existsSync(claudeMdPath)) {
+    let content = fs.readFileSync(claudeMdPath, 'utf8');
+    const startMarker = '<!-- SENTRY_MCP_START -->';
+    const endMarker = '<!-- SENTRY_MCP_END -->';
+    const startIdx = content.indexOf(startMarker);
+    const endIdx = content.indexOf(endMarker);
+
+    if (startIdx !== -1 && endIdx !== -1) {
+      // Replace existing section
+      content = content.slice(0, startIdx) + section + content.slice(endIdx + endMarker.length);
+      fs.writeFileSync(claudeMdPath, content, 'utf8');
+      return 'replaced';
+    }
+
+    // Append section
+    const newline = content.length > 0 && !content.endsWith('\n') ? '\n\n' : '\n';
+    fs.writeFileSync(claudeMdPath, content + newline + section + '\n', 'utf8');
+    return 'appended';
+  }
+
+  // Create new file
+  fs.writeFileSync(claudeMdPath, section + '\n', 'utf8');
+  return 'created';
+}
+
+function removeClaudeMdSection(projectDir) {
+  const claudeMdPath = path.join(projectDir, '.claude', 'CLAUDE.md');
+  if (!fs.existsSync(claudeMdPath)) return false;
+
+  const content = fs.readFileSync(claudeMdPath, 'utf8');
+  const startMarker = '<!-- SENTRY_MCP_START -->';
+  const endMarker = '<!-- SENTRY_MCP_END -->';
+  const startIdx = content.indexOf(startMarker);
+  const endIdx = content.indexOf(endMarker);
+
+  if (startIdx === -1 || endIdx === -1) return false;
+
+  let cleaned = content.slice(0, startIdx) + content.slice(endIdx + endMarker.length);
+  cleaned = cleaned.trim();
+
+  if (cleaned.length === 0) {
+    fs.unlinkSync(claudeMdPath);
+    return 'deleted';
+  }
+
+  fs.writeFileSync(claudeMdPath, cleaned + '\n', 'utf8');
+  return 'removed';
+}
+
 function addToGitignore(entry) {
   const gitignorePath = path.join(PROJECT_DIR, '.gitignore');
   let content = '';
@@ -254,8 +312,16 @@ async function runUninstall(flags) {
     console.log('  [OK] Removed SENTRY-SETUP.md');
   }
 
-  // 6. Clean up .gitignore entries
-  const gitignoreEntries = ['.mcp.json', '.mcp.json.example', '.claude/commands/', '.claude/sentry-mcp.md'];
+  // 6. Remove Sentry section from .claude/CLAUDE.md
+  const claudeMdResult = removeClaudeMdSection(PROJECT_DIR);
+  if (claudeMdResult === 'deleted') {
+    console.log('  [OK] Removed .claude/CLAUDE.md (was only sentry config)');
+  } else if (claudeMdResult === 'removed') {
+    console.log('  [OK] Removed sentry section from .claude/CLAUDE.md');
+  }
+
+  // 7. Clean up .gitignore entries
+  const gitignoreEntries = ['.mcp.json', '.mcp.json.example', '.claude/commands/', '.claude/sentry-mcp.md', '.claude/CLAUDE.md'];
   for (const entry of gitignoreEntries) {
     if (removeFromGitignore(entry)) {
       console.log('  [OK] Removed ' + entry + ' from .gitignore');
@@ -422,7 +488,17 @@ async function main() {
   );
   console.log('  [OK] SENTRY-SETUP.md');
 
-  // 6. Replace all placeholders in copied files
+  // 6. Inject Sentry section into .claude/CLAUDE.md (auto-loaded by Claude Code, stays local)
+  const claudeMdResult = injectClaudeMd(PROJECT_DIR);
+  if (claudeMdResult === 'replaced') {
+    console.log('  [OK] .claude/CLAUDE.md (sentry section updated)');
+  } else if (claudeMdResult === 'appended') {
+    console.log('  [OK] .claude/CLAUDE.md (sentry section ditambahkan)');
+  } else {
+    console.log('  [OK] .claude/CLAUDE.md (created with sentry config)');
+  }
+
+  // 7. Replace all placeholders in copied files
   const replacements = {
     'YOUR_SENTRY_HOST': sentryHost,
     'YOUR_ORG_SLUG': orgSlug,
@@ -431,7 +507,7 @@ async function main() {
 
   updateAllFiles(claudeDir, replacements);
 
-  // Update single files (.mcp.json.example and SENTRY-SETUP.md)
+  // Update single files (.mcp.json.example, SENTRY-SETUP.md)
   const filesToUpdate = [
     path.join(PROJECT_DIR, '.mcp.json.example'),
     path.join(PROJECT_DIR, 'SENTRY-SETUP.md'),
@@ -451,8 +527,8 @@ async function main() {
   console.log('  [OK] Access Token: ' + accessToken.slice(0, 8) + '...' + accessToken.slice(-4));
   console.log('  [OK] Platform: ' + (isWindows ? 'Windows (cmd /c npx)' : process.platform + ' (npx)'));
 
-  // 7. Add .mcp.json, .claude/commands/, .claude/sentry-mcp.md to .gitignore
-  const gitignoreEntries = ['.mcp.json', '.mcp.json.example', '.claude/commands/', '.claude/sentry-mcp.md'];
+  // 8. Add .mcp.json, .claude/commands/, .claude/sentry-mcp.md to .gitignore
+  const gitignoreEntries = ['.mcp.json', '.mcp.json.example', '.claude/commands/', '.claude/sentry-mcp.md', '.claude/CLAUDE.md'];
   for (const entry of gitignoreEntries) {
     if (addToGitignore(entry)) {
       console.log('  [OK] ' + entry + ' ditambahkan ke .gitignore');

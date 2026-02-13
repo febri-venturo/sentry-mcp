@@ -1,8 +1,6 @@
 ---
-allowed-tools: mcp__sentry__update_issue, Read
+allowed-tools: mcp__sentry__update_issue
 ---
-
-Read `.claude/sentry-mcp.md` for config.
 
 **Parse $ARGUMENTS:**
 - Arg 1: Issue ID (PROJECT-123)
