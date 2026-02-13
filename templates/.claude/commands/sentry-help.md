@@ -2,25 +2,18 @@
 allowed-tools: Read
 ---
 
-Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Project Slug, Region URL).
-
-Tampilkan ringkas:
+Read `.claude/sentry-mcp.md` for config, then show:
 
 ## Sentry MCP Commands
 
-| Command | Deskripsi |
-|---------|-----------|
-| `/project:sentry-issues [query]` | List issues (support natural language) |
-| `/project:sentry-detail <ID>` | Detail issue + stacktrace |
+| Command | Description |
+|---------|-------------|
+| `/project:sentry-issues [query]` | List issues (supports natural language) |
+| `/project:sentry-detail <ID>` | Issue detail + stacktrace |
 | `/project:sentry-fix [ID]` | Full workflow: detect → fix → resolve |
 | `/project:sentry-resolve <ID> [action]` | Resolve, ignore, reopen |
 | `/project:sentry-events [query]` | Search events/logs |
-| `/project:sentry-releases [version]` | Lihat releases |
-| `/project:sentry-help` | Bantuan ini |
+| `/project:sentry-releases [version]` | List releases |
+| `/project:sentry-help` | This help |
 
-**Tips**: Kamu juga bisa langsung bertanya natural language, contoh:
-- "apa saja error 1 jam terakhir?"
-- "tolong fix error login"
-- "detail issue PROJECT-123"
-
-Config: Organization=**ORG_SLUG**, Project=**PROJECT_SLUG**, Host=**REGION_URL** (dari `.claude/sentry-mcp.md`).
+You can also ask in natural language, e.g.: "show recent errors", "fix error in login", "detail issue PROJECT-123".

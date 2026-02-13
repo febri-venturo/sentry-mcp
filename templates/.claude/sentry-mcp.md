@@ -5,60 +5,55 @@
 - **Region URL**: https://YOUR_SENTRY_HOST
 - **Dashboard**: https://YOUR_SENTRY_HOST/organizations/YOUR_ORG_SLUG/issues/?project=YOUR_PROJECT_SLUG
 
-## PENTING: Parameter Wajib
+## Required Parameters
 
-**SELALU** gunakan parameter berikut di SETIAP MCP tool call:
+**ALWAYS** include these in EVERY MCP tool call:
 - `organizationSlug`: "YOUR_ORG_SLUG"
 - `projectSlugOrId`: "YOUR_PROJECT_SLUG"
 - `regionUrl`: "https://YOUR_SENTRY_HOST"
 
-Jangan pernah panggil MCP tool tanpa `projectSlugOrId` — tanpa parameter ini, Sentry akan mengembalikan issues dari SEMUA project di organization.
+Never call MCP tools without `projectSlugOrId` — without it, Sentry returns issues from ALL projects.
 
-## DILARANG: Jangan Pakai `search_issues`
+## NEVER Use `search_issues`
 
-**JANGAN PERNAH** gunakan tool `search_issues`. Tool ini membutuhkan OpenAI API internal yang tidak tersedia di self-hosted Sentry dan sering gagal karena quota limit.
+`search_issues` requires an internal OpenAI API that fails on self-hosted Sentry (quota errors). **Always use `list_issues`** and translate natural language to Sentry query syntax manually:
+- "latest errors" → query: `is:unresolved level:error`, sort: `date`
+- "warnings today" → query: `is:unresolved level:warning lastSeen:-24h`
+- "5 recent issues" → query: `is:unresolved`, sort: `date`, limit: `5`
 
-**SELALU** gunakan `list_issues` sebagai gantinya. Terjemahkan natural language dari user menjadi Sentry query syntax secara manual:
-- "error terbaru" → query: `is:unresolved level:error`, sort: `date`
-- "warning hari ini" → query: `is:unresolved level:warning lastSeen:-24h`
-- "5 issue terakhir" → query: `is:unresolved`, sort: `date`, limit: `5`
+## Natural Language Mapping
 
-Ini berlaku untuk semua konteks — baik slash command maupun natural language prompt.
+When user asks about errors/issues in any language, map to the correct MCP tool:
 
-## Natural Language Support
-
-Ketika user bertanya tentang error, issue, atau bug menggunakan bahasa natural (Indonesia/English), terjemahkan ke MCP tool calls yang sesuai.
-
-**Mapping natural language → tool:**
-| Intent User | Tool | Parameter Kunci |
+| Intent | Tool | Key Params |
 |---|---|---|
-| error/issue/bug terbaru | `list_issues` | organizationSlug, **projectSlugOrId**, regionUrl, query, limit |
-| detail issue / stacktrace | `get_issue_details` | organizationSlug, regionUrl, issueId/issueUrl |
-| event / log aktivitas | `list_events` | organizationSlug, **projectSlug**, regionUrl, query, dataset, statsPeriod |
-| resolve/selesaikan/abaikan | `update_issue` | organizationSlug, regionUrl, issueId, status |
-| release/deploy | `find_releases` | organizationSlug, **projectSlug**, regionUrl, query |
+| list/recent errors | `list_issues` | query, limit, sort |
+| issue detail/stacktrace | `get_issue_details` | issueId or issueUrl |
+| events/logs | `list_events` | query, dataset, statsPeriod |
+| resolve/ignore/reopen | `update_issue` | issueId, status |
+| releases | `find_releases` | query |
 
-**Mapping waktu:**
-- "1 jam" → `-1h`, "24 jam/sehari" → `-24h`, "seminggu" → `-7d`, "sebulan" → `-30d`
+**Time mapping**: "1 hour" → `-1h`, "24 hours/today" → `-24h`, "1 week" → `-7d`, "1 month" → `-30d`
+**Level mapping**: "error" → `level:error`, "warning" → `level:warning`, "fatal/crash" → `level:fatal`
 
-**Mapping level:**
-- "error" → `level:error`, "warning" → `level:warning`, "fatal/crash" → `level:fatal`
+## Fix Workflow (Detect → Analyze → Fix → Resolve)
 
-## Workflow: Error → Fix → Resolve
+When user asks to fix an error, follow these steps. **Wait for user confirmation** between major steps.
 
-Jika user minta fix error, ikuti flow ini secara bertahap. **Jangan jalankan semua sekaligus** — tunggu konfirmasi user di setiap langkah utama.
+1. **Detect** — `list_issues` with `projectSlugOrId`
+2. **Analyze** — `get_issue_details` for stacktrace, identify file:line
+3. **Locate** — Open the file, show code around the error
+4. **Fix** — Suggest and apply fix (ask user first)
+5. **Resolve** — `update_issue` status:"resolved" after fix is applied
 
-1. **Detect** — `list_issues` (dengan `projectSlugOrId`) untuk identifikasi error
-2. **Analyze** — `get_issue_details` untuk stacktrace, identifikasi file:line di project
-3. **Locate** — Buka file yang error, tampilkan code sekitar error
-4. **Fix** — Suggest dan apply fix (minta konfirmasi user)
-5. **Resolve** — `update_issue` status:"resolved" setelah fix diterapkan
+## Token Efficiency
 
-## Token Efficiency Rules
+- Default `limit: 5` (not 25) unless user asks for more
+- Compact output: only Issue ID, Title, Level, Last Seen
+- Stacktrace: only application code frames (skip vendor/library)
+- Don't repeat config or instructions already shown
+- Use `regionUrl` from this config — never ask user to re-enter
 
-- Gunakan `limit: 5` sebagai default (bukan 25) kecuali user minta lebih
-- Tampilkan output dalam format ringkas: Issue ID, Title, Level, Last Seen. Tidak perlu semua field
-- Untuk stacktrace, tampilkan hanya frame dari application code (skip vendor/library frames)
-- Jangan ulangi instruksi atau config yang sudah ditampilkan sebelumnya
-- Jika user hanya bertanya, jawab langsung tanpa contoh penggunaan command
-- Gunakan `regionUrl` dari config ini — jangan minta user input ulang
+## Response Language
+
+Always respond in the same language the user is using. If user writes in Indonesian, respond in Indonesian. If in English, respond in English. The instructions here are in English for token efficiency, but your responses should match the user's language.

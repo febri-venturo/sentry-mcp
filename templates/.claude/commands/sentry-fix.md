@@ -2,34 +2,21 @@
 allowed-tools: mcp__sentry__list_issues, mcp__sentry__get_issue_details, mcp__sentry__update_issue, Read, Edit, MultiEdit, Write
 ---
 
-Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Project Slug, Region URL).
+Read `.claude/sentry-mcp.md` for config. **NEVER use `search_issues`** — always use `list_issues`.
 
-Command ini menjalankan workflow lengkap: **Detect → Analyze → Fix → Resolve**.
-
-**PENTING**: Setiap MCP call WAJIB sertakan `organizationSlug`, `projectSlugOrId`, dan `regionUrl` dari config.
-
-**JANGAN gunakan `search_issues`** — selalu gunakan `list_issues`. Tool `search_issues` membutuhkan OpenAI API yang tidak tersedia di self-hosted dan akan error.
+All MCP calls MUST include `organizationSlug`, `projectSlugOrId`, `regionUrl` from config.
 
 **Parse $ARGUMENTS:**
-- Jika Issue ID (PROJECT-123) → langsung ke step 2
-- Jika natural language ("fix error terbaru", "fix error login") → mulai dari step 1
-- Jika kosong → mulai dari step 1 dengan 5 error terbaru
+- Issue ID (PROJECT-123) → skip to step 2
+- Natural language → start from step 1
+- Empty → start from step 1 with 5 latest errors
 
-**Step 1: Detect**
-Panggil `list_issues` dengan organizationSlug, **projectSlugOrId**, regionUrl, query: "is:unresolved level:error", sort: "date", limit: 5.
-Tampilkan tabel ringkas (ID, Title, Last Seen), lalu tanya user mau fix yang mana.
+**Step 1: Detect** — `list_issues` query: `is:unresolved level:error`, sort: `date`, limit: 5. Show compact table, ask which to fix.
 
-**Step 2: Analyze**
-Panggil `get_issue_details` untuk issue yang dipilih/diberikan.
-Dari stacktrace, identifikasi file dan line number yang error di project ini (skip vendor/library frames).
-Tampilkan ringkas: error message, file:line, snippet code.
+**Step 2: Analyze** — `get_issue_details`. Extract file:line from stacktrace (app frames only). Show error message, location, code snippet.
 
-**Step 3: Locate & Fix**
-Buka file yang error di project. Tampilkan code di sekitar line error.
-Analisis root cause, kemudian suggest fix. Terapkan fix setelah user konfirmasi.
+**Step 3: Fix** — Open file, show code around error, analyze root cause, suggest fix. Apply after user confirms.
 
-**Step 4: Resolve**
-Setelah fix diterapkan, tanya: "Fix sudah diterapkan. Mau resolve issue di Sentry?"
-Jika ya, panggil `update_issue` status: "resolved".
+**Step 4: Resolve** — Ask user, then `update_issue` status: `resolved`.
 
-**Hemat token**: Jangan tampilkan full stacktrace, hanya relevant frames. Jawab ringkas di setiap step.
+Keep responses compact at every step. Only show relevant stacktrace frames.

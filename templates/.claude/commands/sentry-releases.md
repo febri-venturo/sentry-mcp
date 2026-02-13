@@ -2,14 +2,10 @@
 allowed-tools: mcp__sentry__find_releases, Read
 ---
 
-Baca file `.claude/sentry-mcp.md` untuk mendapatkan nilai Organization Slug, Project Slug, dan Region URL.
+Read `.claude/sentry-mcp.md` for config.
 
-Panggil `find_releases` dengan:
-- organizationSlug: (dari config)
-- projectSlug: (dari config)
-- regionUrl: (dari config)
-- query: "$ARGUMENTS" (jika ada, untuk filter versi tertentu)
+Call `find_releases` with `organizationSlug`, `projectSlug`, `regionUrl` from config + `query`: "$ARGUMENTS" (if provided).
 
-Tampilkan daftar releases dengan versi, tanggal, dan informasi deployment.
+Show releases with version, date, and deployment info.
 
-Jika tidak ada releases, beritahu user bahwa release tracking belum dikonfigurasi. Sarankan untuk menambahkan opsi `release` pada Sentry SDK init di project mereka. Lihat dokumentasi: https://docs.sentry.io/product/releases/
+If no releases found, inform user that release tracking is not configured. Suggest adding `release` option to Sentry SDK init. Docs: https://docs.sentry.io/product/releases/

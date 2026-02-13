@@ -2,18 +2,16 @@
 allowed-tools: mcp__sentry__update_issue, Read
 ---
 
-Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Region URL).
+Read `.claude/sentry-mcp.md` for config.
 
 **Parse $ARGUMENTS:**
 - Arg 1: Issue ID (PROJECT-123)
-- Arg 2: Action — mapping:
-  - "resolved/resolve/selesai/fix/done" → status: "resolved"
-  - "ignored/ignore/abaikan/skip" → status: "ignored"
-  - "unresolved/reopen/buka" → status: "unresolved"
-- Jika natural language ("resolve issue PROJECT-123"), parse ID dan action dari kalimat
+- Arg 2: Action mapping:
+  - "resolved/resolve/done/fix" → status: `resolved`
+  - "ignored/ignore/skip" → status: `ignored`
+  - "unresolved/reopen" → status: `unresolved`
+- Natural language → parse ID and action from sentence
 
-Jika hanya Issue ID tanpa action, default ke "resolved" dan konfirmasi ke user.
+No action given → default to `resolved`, confirm with user first.
 
-Panggil `update_issue` dengan organizationSlug, regionUrl, issueId, status.
-
-Konfirmasi singkat: "✅ Issue PROJECT-123 resolved."
+Call `update_issue` with `organizationSlug`, `regionUrl`, `issueId`, `status`.

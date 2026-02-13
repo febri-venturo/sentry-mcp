@@ -2,19 +2,18 @@
 allowed-tools: mcp__sentry__get_issue_details, Read
 ---
 
-Baca `.claude/sentry-mcp.md` untuk config (Organization Slug, Region URL).
+Read `.claude/sentry-mcp.md` for config.
 
 **Parse $ARGUMENTS:**
-- URL (http...) → gunakan sebagai `issueUrl`
-- Issue ID (PROJECT-123) → gunakan sebagai `issueId` + organizationSlug
+- URL → use as `issueUrl`
+- Issue ID (PROJECT-123) → use as `issueId` + `organizationSlug`
+- Empty → ask user for Issue ID
 
-Jika kosong, minta user berikan Issue ID.
+Call `get_issue_details` with `regionUrl` from config.
 
-Panggil `get_issue_details` dengan regionUrl dari config.
+**Output** (compact):
+1. **Summary**: title, status, level, events count, first/last seen
+2. **Stacktrace**: app code frames only (skip vendor/library), show file:line + snippet
+3. **Link**: Sentry dashboard URL
 
-**Format output** (ringkas, hemat token):
-1. **Summary**: Title, status, level, events count, first/last seen
-2. **Stacktrace**: Hanya application code frames (skip vendor/library). Tampilkan file:line + snippet
-3. **Link**: URL ke Sentry dashboard
-
-Jika stacktrace menunjuk file di project ini, tawarkan: "Mau saya buka file errornya dan bantu fix?"
+If stacktrace points to a file in this project, offer to open and help fix it.
