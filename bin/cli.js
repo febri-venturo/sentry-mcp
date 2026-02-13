@@ -123,6 +123,154 @@ function writeMcpJson(projectDir, sentryHost, accessToken) {
   return 'created';
 }
 
+function removeFromGitignore(entry) {
+  const gitignorePath = path.join(PROJECT_DIR, '.gitignore');
+  if (!fs.existsSync(gitignorePath)) return false;
+
+  const content = fs.readFileSync(gitignorePath, 'utf8');
+  const lines = content.split('\n');
+  const filtered = lines.filter((line) => line.trim() !== entry);
+
+  if (lines.length === filtered.length) return false;
+
+  fs.writeFileSync(gitignorePath, filtered.join('\n'), 'utf8');
+  return true;
+}
+
+function removeSentryFromMcpJson() {
+  const mcpJsonPath = path.join(PROJECT_DIR, '.mcp.json');
+  if (!fs.existsSync(mcpJsonPath)) return 'not_found';
+
+  try {
+    const config = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
+    if (!config.mcpServers || !config.mcpServers.sentry) return 'not_found';
+
+    delete config.mcpServers.sentry;
+
+    // If no MCP servers left, delete the file
+    if (Object.keys(config.mcpServers).length === 0) {
+      fs.unlinkSync(mcpJsonPath);
+      return 'deleted';
+    }
+
+    fs.writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+    return 'removed';
+  } catch (e) {
+    return 'error';
+  }
+}
+
+async function runUninstall(flags) {
+  console.log('');
+  console.log('  ================================');
+  console.log('  Sentry MCP Plugin — Uninstall');
+  console.log('  ================================');
+  console.log('');
+
+  // Check if installed
+  const commandsDir = path.join(PROJECT_DIR, '.claude', 'commands');
+  const configFile = path.join(PROJECT_DIR, '.claude', 'sentry-mcp.md');
+  const hasCommands = fs.existsSync(path.join(commandsDir, 'sentry-help.md'));
+  const hasConfig = fs.existsSync(configFile);
+
+  if (!hasCommands && !hasConfig) {
+    console.log('  Sentry MCP tidak terinstall di project ini.');
+    return;
+  }
+
+  if (!flags.force) {
+    const confirm = await ask('  Hapus Sentry MCP dari project ini? (y/N): ');
+    if (confirm.toLowerCase() !== 'y') {
+      console.log('  Dibatalkan.');
+      return;
+    }
+    console.log('');
+  }
+
+  console.log('  Uninstalling...');
+
+  // 1. Remove sentry command files
+  const sentryCommands = [
+    'sentry-issues.md', 'sentry-detail.md', 'sentry-fix.md',
+    'sentry-resolve.md', 'sentry-events.md', 'sentry-releases.md',
+    'sentry-docs.md', 'sentry-help.md',
+  ];
+  let removedCommands = 0;
+  for (const cmd of sentryCommands) {
+    const cmdPath = path.join(commandsDir, cmd);
+    if (fs.existsSync(cmdPath)) {
+      fs.unlinkSync(cmdPath);
+      removedCommands++;
+    }
+  }
+  if (removedCommands > 0) {
+    console.log('  [OK] Removed ' + removedCommands + ' sentry commands from .claude/commands/');
+  }
+
+  // Clean up empty commands dir (only if no other files remain)
+  if (fs.existsSync(commandsDir)) {
+    const remaining = fs.readdirSync(commandsDir);
+    if (remaining.length === 0) {
+      fs.rmdirSync(commandsDir);
+      console.log('  [OK] Removed empty .claude/commands/');
+    }
+  }
+
+  // 2. Remove .claude/sentry-mcp.md
+  if (fs.existsSync(configFile)) {
+    fs.unlinkSync(configFile);
+    console.log('  [OK] Removed .claude/sentry-mcp.md');
+  }
+
+  // Clean up empty .claude dir
+  const claudeDir = path.join(PROJECT_DIR, '.claude');
+  if (fs.existsSync(claudeDir)) {
+    const remaining = fs.readdirSync(claudeDir);
+    if (remaining.length === 0) {
+      fs.rmdirSync(claudeDir);
+      console.log('  [OK] Removed empty .claude/');
+    }
+  }
+
+  // 3. Remove sentry from .mcp.json (keep other servers)
+  const mcpResult = removeSentryFromMcpJson();
+  if (mcpResult === 'deleted') {
+    console.log('  [OK] Removed .mcp.json (no other MCP servers)');
+  } else if (mcpResult === 'removed') {
+    console.log('  [OK] Removed sentry config from .mcp.json (kept other servers)');
+  }
+
+  // 4. Remove .mcp.json.example
+  const examplePath = path.join(PROJECT_DIR, '.mcp.json.example');
+  if (fs.existsSync(examplePath)) {
+    fs.unlinkSync(examplePath);
+    console.log('  [OK] Removed .mcp.json.example');
+  }
+
+  // 5. Remove SENTRY-SETUP.md
+  const setupPath = path.join(PROJECT_DIR, 'SENTRY-SETUP.md');
+  if (fs.existsSync(setupPath)) {
+    fs.unlinkSync(setupPath);
+    console.log('  [OK] Removed SENTRY-SETUP.md');
+  }
+
+  // 6. Clean up .gitignore entries
+  const gitignoreEntries = ['.mcp.json', '.claude/commands/', '.claude/sentry-mcp.md'];
+  for (const entry of gitignoreEntries) {
+    if (removeFromGitignore(entry)) {
+      console.log('  [OK] Removed ' + entry + ' from .gitignore');
+    }
+  }
+
+  console.log('');
+  console.log('  ================================');
+  console.log('  Uninstall selesai!');
+  console.log('  ================================');
+  console.log('');
+  console.log('  Restart Claude Code untuk menerapkan perubahan.');
+  console.log('');
+}
+
 function parseArgs(args) {
   const parsed = {};
   for (const arg of args) {
@@ -138,19 +286,29 @@ async function main() {
   const command = process.argv[2];
   const flags = parseArgs(process.argv.slice(3));
 
+  if (command === 'uninstall') {
+    await runUninstall(flags);
+    rl.close();
+    return;
+  }
+
   if (command !== 'init') {
     console.log('');
     console.log('  Sentry MCP Plugin for Claude Code');
     console.log('');
     console.log('  Usage:');
     console.log('    npx github:febri-venturo/sentry-mcp init');
+    console.log('    npx github:febri-venturo/sentry-mcp uninstall');
     console.log('');
-    console.log('  Options:');
+    console.log('  Init options:');
     console.log('    --host=<sentry-host>       Sentry host (contoh: sentry.company.com)');
     console.log('    --org=<org-slug>           Organization slug');
     console.log('    --project=<project-slug>   Project slug');
     console.log('    --token=<access-token>     Sentry access token');
     console.log('    --force                    Overwrite tanpa konfirmasi');
+    console.log('');
+    console.log('  Uninstall options:');
+    console.log('    --force                    Uninstall tanpa konfirmasi');
     console.log('');
     rl.close();
     return;
