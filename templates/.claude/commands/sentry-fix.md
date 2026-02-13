@@ -8,6 +8,8 @@ Command ini menjalankan workflow lengkap: **Detect → Analyze → Fix → Resol
 
 **PENTING**: Setiap MCP call WAJIB sertakan `organizationSlug`, `projectSlugOrId`, dan `regionUrl` dari config.
 
+**JANGAN gunakan `search_issues`** — selalu gunakan `list_issues`. Tool `search_issues` membutuhkan OpenAI API yang tidak tersedia di self-hosted dan akan error.
+
 **Parse $ARGUMENTS:**
 - Jika Issue ID (PROJECT-123) → langsung ke step 2
 - Jika natural language ("fix error terbaru", "fix error login") → mulai dari step 1

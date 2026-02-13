@@ -293,11 +293,14 @@ async function main() {
   console.log('  [OK] Access Token: ' + accessToken.slice(0, 8) + '...' + accessToken.slice(-4));
   console.log('  [OK] Platform: ' + (isWindows ? 'Windows (cmd /c npx)' : process.platform + ' (npx)'));
 
-  // 7. Add .mcp.json to .gitignore
-  if (addToGitignore('.mcp.json')) {
-    console.log('  [OK] .mcp.json ditambahkan ke .gitignore');
-  } else {
-    console.log('  [OK] .mcp.json sudah ada di .gitignore');
+  // 7. Add .mcp.json, .claude/commands/, .claude/sentry-mcp.md to .gitignore
+  const gitignoreEntries = ['.mcp.json', '.claude/commands/', '.claude/sentry-mcp.md'];
+  for (const entry of gitignoreEntries) {
+    if (addToGitignore(entry)) {
+      console.log('  [OK] ' + entry + ' ditambahkan ke .gitignore');
+    } else {
+      console.log('  [OK] ' + entry + ' sudah ada di .gitignore');
+    }
   }
 
   console.log('');

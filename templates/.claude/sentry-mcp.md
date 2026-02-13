@@ -14,6 +14,17 @@
 
 Jangan pernah panggil MCP tool tanpa `projectSlugOrId` — tanpa parameter ini, Sentry akan mengembalikan issues dari SEMUA project di organization.
 
+## DILARANG: Jangan Pakai `search_issues`
+
+**JANGAN PERNAH** gunakan tool `search_issues`. Tool ini membutuhkan OpenAI API internal yang tidak tersedia di self-hosted Sentry dan sering gagal karena quota limit.
+
+**SELALU** gunakan `list_issues` sebagai gantinya. Terjemahkan natural language dari user menjadi Sentry query syntax secara manual:
+- "error terbaru" → query: `is:unresolved level:error`, sort: `date`
+- "warning hari ini" → query: `is:unresolved level:warning lastSeen:-24h`
+- "5 issue terakhir" → query: `is:unresolved`, sort: `date`, limit: `5`
+
+Ini berlaku untuk semua konteks — baik slash command maupun natural language prompt.
+
 ## Natural Language Support
 
 Ketika user bertanya tentang error, issue, atau bug menggunakan bahasa natural (Indonesia/English), terjemahkan ke MCP tool calls yang sesuai.
